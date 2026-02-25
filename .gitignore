@@ -1,3 +1,2 @@
-backend/target
-frontend/main
-frontend/lib
+**/target
+**/*.h
