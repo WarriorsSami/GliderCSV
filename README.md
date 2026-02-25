@@ -12,8 +12,6 @@ GliderCSV is built on three pillars of modern systems engineering:
 * **Zero-Copy Bridge:** Uses the **Apache Arrow C Data Interface** to share memory buffers between Rust and Go without serialization overhead.
 * **Bubble Tea TUI:** A beautiful, Elm-architecture-inspired interface for navigating data, managing long-running crawls, and visualizing schemas.
 
-
-
 ## ⚡ Key Features
 
 * **Zero-Copy FFI:** Data flows from Rust to Go via memory pointers, not JSON or Protobuf.
@@ -57,3 +55,26 @@ GliderCSV/
     │   └── syscrawler/     # Cgo bridge & cbindgen output
     ├── ui/                 # Bubble Tea models and views
     └── main.go             # Entrypoint
+```
+
+## 🗺 Roadmap
+
+### Phase 1: Foundations (Current)
+- [x] Basic Rust-to-Go FFI scaffold via `cgo`.
+- [x] Automated header generation with `cbindgen`.
+- [ ] Initial Bubble Tea TUI viewport setup.
+
+### Phase 2: The Data Plane
+- [ ] Implement **Apache Arrow C Data Interface** for zero-copy transfers.
+- [ ] Add streaming chunk support (`batch_size`) to prevent OOM on large files.
+- [ ] Integrate a background worker in Go to keep the TUI responsive during crawls.
+
+### Phase 3: The Intelligence Layer
+- [ ] Implement the **Pest**-based DSL for predicate pushdown.
+- [ ] Add CSV schema auto-detection (inferring types: Int, Float, String, Date).
+- [ ] Support for multiple delimiters and Gzip/Zstd compressed CSVs.
+
+### Phase 4: UX & Polishing
+- [ ] Add interactive column sorting in the TUI.
+- [ ] Implement "Export to Parquet" functionality.
+- [ ] Live-reload mode for monitoring growing log files.
