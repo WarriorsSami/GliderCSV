@@ -1,0 +1,63 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // Debug Rust code while executing the Go unit test.
+            //
+            // Prerequisites:
+            //   - CodeLLDB extension (vadimcn.vscode-lldb)
+            //
+            // How it works:
+            //   1. preLaunchTask builds libcrawler.so (Rust, debug symbols) then
+            //      compiles the Go test binary with optimisations disabled.
+            //   2. LLDB launches the test binary as a native process.
+            //   3. additionalSOLibSearchPath tells LLDB where libcrawler.so lives
+            //      so it can load the DWARF debug info and resolve Rust breakpoints.
+            //   4. Breakpoints set in both lib.rs and *_test.go will be hit.
+            "name": "Go Test + Rust (LLDB)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/cli/syscrawler.test",
+            "args": [
+                "-test.v",
+                "-test.run", "TestNextBatch_MockData"
+            ],
+            "cwd": "${workspaceFolder}/cli",
+            "additionalSOLibSearchPath": "${workspaceFolder}/crawler/target/debug",
+            "env": {
+                // Prevent Go's runtime signal handlers from intercepting the
+                // signals LLDB uses to manage breakpoints.
+                "GONOSIGPIPE": "1",
+                "GOTRACEBACK": "crash"
+            },
+            "preLaunchTask": "go: compile test binary (syscrawler)",
+            "initCommands": [
+                // Never open a disassembly view when LLDB can't find source for
+                // a frame (e.g. Go runtime assembly stubs, CGo trampolines).
+                "settings set stop-disassembly-display never",
+                // When stepping in, skip over functions whose mangled names match
+                // Go runtime internals and CGo bridge assembly.
+                "settings set target.process.thread.step-avoid-regexp ^runtime\\.|^_cgo_|^crosscall2|^x_cgo_",
+                // SIGURG is used by the Go runtime scheduler for goroutine
+                // preemption (async preemption, Go 1.14+). Tell LLDB to pass it
+                // straight through to the process without stopping.
+                "process handle SIGURG --stop false --pass true --notify false"
+            ]
+        },
+        {
+            // Plain Rust unit-test debug session (no Go involved).
+            // Use this to debug pure Rust logic in isolation.
+            "name": "Rust Tests (cargo test)",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": ["test", "--no-run", "--lib"],
+                "filter": {
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/crawler"
+        }
+    ]
+}

@@ -7,7 +7,7 @@ fn main() {
 
     // 1. Start at the rust-crawler directory
     let mut out_path = PathBuf::from(&crate_dir);
-    
+
     // 2. Navigate up to the root, then down into the Go syscrawler package
     out_path.push("../cli/internal/syscrawler/crawler.h");
 
@@ -18,5 +18,5 @@ fn main() {
         .with_include_guard("CSV_CRAWLER_H")
         .generate()
         .expect("Unable to generate bindings")
-        .write_to_file(out_path); 
+        .write_to_file(out_path);
 }

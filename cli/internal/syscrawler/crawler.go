@@ -4,8 +4,10 @@ package syscrawler
 // We no longer need CFLAGS: -I... because crawler.h is in this exact folder!
 
 // We STILL need LDFLAGS to tell it where the compiled Rust binary is.
-// Notice the path: up out of syscrawler, internal, cli, then into csv_crawler
-#cgo LDFLAGS: -L../../../csv_crawler/target/debug -lcrawler
+// Notice the path: up out of syscrawler, internal, cli, then into crawler
+// -Wl,-rpath embeds the runtime search path so the dynamic linker finds
+// libcrawler.so when running test binaries and the built executable.
+#cgo LDFLAGS: -L${SRCDIR}/../../../crawler/target/debug -lcrawler -Wl,-rpath,${SRCDIR}/../../../crawler/target/debug
 
 #include "crawler.h"
 #include <stdlib.h>
@@ -14,6 +16,9 @@ import "C"
 import (
 	"fmt"
 	"unsafe"
+
+	"github.com/apache/arrow/go/v18/arrow"
+	"github.com/apache/arrow/go/v18/arrow/cdata"
 )
 
 // Opaque Go wrapper for the C pointer
@@ -55,6 +60,35 @@ func OpenCrawler(filePath string, batchSize int, delimiter byte, filter string) 
 	}
 
 	return &CrawlerHandle{ptr: handlePtr}, nil
+}
+
+func (h *CrawlerHandle) NextBatch() (arrow.Record, error) {
+	var rawSchema cdata.CArrowSchema
+	var rawArray cdata.CArrowArray
+
+	schemaPtr := (*C.ArrowSchema)(unsafe.Pointer(&rawSchema))
+	arrayPtr := (*C.ArrowArray)(unsafe.Pointer(&rawArray))
+
+	var cErrMsg *C.char
+
+	// Call the Rust function to get the next batch
+	rowCount := C.csv_crawler_next_batch(h.ptr, schemaPtr, arrayPtr, &cErrMsg)
+
+	if cErrMsg != nil {
+		msg := C.GoString(cErrMsg)
+		C.free(unsafe.Pointer(cErrMsg))
+		return nil, fmt.Errorf("rust: %s", msg)
+	}
+	if rowCount < 0 {
+		return nil, fmt.Errorf("csv_crawler_next_batch failed with no error message")
+	}
+
+	rec, err := cdata.ImportCRecordBatch(&rawArray, &rawSchema)
+	if err != nil {
+		return nil, fmt.Errorf("arrow import failed: %w", err)
+	}
+
+	return rec, nil
 }
 
 // Free MUST be called by the user via defer

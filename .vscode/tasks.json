@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cargo: build crawler (debug)",
+            "type": "shell",
+            "command": "cargo build",
+            "options": {
+                "cwd": "${workspaceFolder}/crawler"
+            },
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": "$rustc"
+        },
+        {
+            "label": "go: compile test binary (syscrawler)",
+            "type": "shell",
+            "command": "go test -gcflags='all=-N -l' -c ./internal/syscrawler/... -o ${workspaceFolder}/cli/syscrawler.test",
+            "options": {
+                "cwd": "${workspaceFolder}/cli"
+            },
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": "$go",
+            "dependsOn": "cargo: build crawler (debug)"
+        }
+    ]
+}
