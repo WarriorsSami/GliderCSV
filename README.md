@@ -73,8 +73,8 @@ GliderCSV/
 
 ### Phase 2: The Data Plane
 
-* [ ] Implement **Apache Arrow C Data Interface** for zero-copy memory transfers.
-* [ ] Establish strict memory lifecycles (Rust allocates, Go reads & triggers release callbacks).
+* [x] Implement **Apache Arrow C Data Interface** for zero-copy memory transfers.
+* [x] Establish strict memory lifecycles (Rust allocates, Go reads & triggers release callbacks).
 * [ ] Integrate a background worker in Go (`tea.Cmd`) to keep the TUI responsive during FFI batch fetching.
 
 ### Phase 3: The Intelligence Layer (Powered by DataFusion)
