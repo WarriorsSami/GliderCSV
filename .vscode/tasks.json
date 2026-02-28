@@ -29,6 +29,27 @@
             },
             "problemMatcher": "$go",
             "dependsOn": "cargo: build crawler (debug)"
+        },
+        {
+            // Run all syscrawler Go tests. Always rebuilds libcrawler.so first
+            // via dependsOn so the .so is never stale relative to the source.
+            "label": "go: test syscrawler",
+            "type": "shell",
+            "command": "go test ./internal/syscrawler/... -v",
+            "options": {
+                "cwd": "${workspaceFolder}/cli"
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
+            "problemMatcher": "$go",
+            "dependsOn": "cargo: build crawler (debug)"
         }
     ]
 }

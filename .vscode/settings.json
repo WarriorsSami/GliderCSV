@@ -1,0 +1,41 @@
+{
+    // ── rust-analyzer ────────────────────────────────────────────────────────
+    // Point rust-analyzer at the crawler crate so it indexes the right root.
+    "rust-analyzer.linkedProjects": [
+        "./crawler/Cargo.toml"
+    ],
+
+    // Run cargo check / clippy on save so errors appear inline.
+    "rust-analyzer.checkOnSave": true,
+    "rust-analyzer.check.command": "clippy",
+
+    // Test Explorer: show #[test] functions as individual nodes in the
+    // Testing panel (the beaker icon).
+    "rust-analyzer.testExplorer": true,
+
+    // Extra args forwarded to the compiled test binary when rust-analyzer
+    // runs or debugs a test from the Test Explorer or the gutter.
+    // NOTE: these are test-binary args (like --nocapture), NOT cargo args.
+    //       cargo-level flags (e.g. --no-fail-fast) go in extraArgs, not here.
+    "rust-analyzer.runnables.extraTestBinaryArgs": [
+        "--nocapture"
+    ],
+
+    // LLDB engine settings applied to every rust-analyzer-generated debug
+    // session (gutter bug icon, Test Explorer debug button).
+    // Mirrors the initCommands in launch.json so behaviour is consistent.
+    "rust-analyzer.debug.engine": "vadimcn.vscode-lldb",
+    "rust-analyzer.debug.engineSettings": {
+        "initCommands": [
+            "settings set stop-disassembly-display never",
+            "process handle SIGURG --stop false --pass true --notify false"
+        ]
+    },
+
+    // ── Go ───────────────────────────────────────────────────────────────────
+    // Go test flags shown in the Test Explorer run.
+    "go.testFlags": ["-v"],
+
+    // Run go vet on save.
+    "go.vetOnSave": "package"
+}

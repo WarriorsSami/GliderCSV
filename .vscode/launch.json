@@ -20,9 +20,11 @@
             "program": "${workspaceFolder}/cli/syscrawler.test",
             "args": [
                 "-test.v",
-                "-test.run", "TestNextBatch_MockData"
+                // Run all tests. Narrow this to a single test name when
+                // you want to debug a specific case, e.g. "TestNextBatch_RealCSV".
+                "-test.run", "^TestNextBatch.*$"
             ],
-            "cwd": "${workspaceFolder}/cli",
+            "cwd": "${workspaceFolder}/cli/internal/syscrawler",
             "additionalSOLibSearchPath": "${workspaceFolder}/crawler/target/debug",
             "env": {
                 // Prevent Go's runtime signal handlers from intercepting the
@@ -58,6 +60,48 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}/crawler"
+        },
+        {
+            // Go-only debug session using Delve (dlv).
+            //
+            // LLDB does not understand Go's runtime: goroutine stacks, interface
+            // headers, string/slice descriptors are all opaque to it. Delve is
+            // the only debugger that can inspect Go locals, arguments, and
+            // goroutine state correctly.
+            //
+            // Use this config when you want to inspect Go variables.
+            // Use "Go Test + Rust (LLDB)" when you want Rust breakpoints.
+            // Use "Debug Go + Rust (compound)" to run both simultaneously.
+            "name": "Go Test (Delve)",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${workspaceFolder}/cli/internal/syscrawler",
+            "args": ["-test.v", "-test.run", "."],
+            "cwd": "${workspaceFolder}/cli/internal/syscrawler",
+            "env": {},
+            // Absolute path to dlv so VS Code finds it regardless of which
+            // shell PATH is active when the window was opened.
+            "dlvToolPath": "/home/samibarbutdica/go/bin/dlv",
+            "preLaunchTask": "cargo: build crawler (debug)"
+        }
+    ],
+    "compounds": [
+        {
+            // Runs Delve (Go variables) and LLDB (Rust variables) side by side
+            // as two independent debug sessions against two separate processes.
+            //
+            // Each session runs the full test suite independently:
+            //   - Set Go breakpoints in the Delve session ("Go Test (Delve)")
+            //   - Set Rust breakpoints in the LLDB session ("Go Test + Rust (LLDB)")
+            //
+            // Note: they are separate processes, not the same one. This is the
+            // practical limit of mixed-runtime debugging — a single process
+            // cannot be fully controlled by two different debugger protocols
+            // simultaneously.
+            "name": "Debug Go + Rust (compound)",
+            "configurations": ["Go Test (Delve)", "Go Test + Rust (LLDB)"],
+            "stopAll": true
         }
     ]
 }

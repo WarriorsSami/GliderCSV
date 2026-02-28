@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        // Rust: language server + Test Explorer integration for #[test] functions
+        "rust-lang.rust-analyzer",
+        // Go: language server + Test Explorer integration for Go tests
+        "golang.go",
+        // Debugger: required for the "Go Test + Rust (LLDB)" launch config
+        "vadimcn.vscode-lldb"
+    ]
+}
