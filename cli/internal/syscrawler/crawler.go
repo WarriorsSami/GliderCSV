@@ -15,6 +15,7 @@ package syscrawler
 import "C"
 import (
 	"fmt"
+	"io"
 	"unsafe"
 
 	"github.com/apache/arrow/go/v18/arrow"
@@ -45,13 +46,13 @@ func OpenCrawler(filePath string, batchSize int, delimiter byte, filter string) 
 
 	// 3. Prepare error pointer
 	var cErrorMsg *C.char
+	defer C.free(unsafe.Pointer(cErrorMsg))
 
 	// 4. Call Rust over FFI
 	handlePtr := C.csv_crawler_open(&config, &cErrorMsg)
 
 	// 5. Check for errors
 	if cErrorMsg != nil {
-		defer C.free(unsafe.Pointer(cErrorMsg))
 		return nil, fmt.Errorf("rust crawler failed: %s", C.GoString(cErrorMsg))
 	}
 
@@ -70,17 +71,19 @@ func (h *CrawlerHandle) NextBatch() (arrow.Record, error) {
 	arrayPtr := (*C.ArrowArray)(unsafe.Pointer(&rawArray))
 
 	var cErrMsg *C.char
+	defer C.free(unsafe.Pointer(cErrMsg)) // Free error message if set 
 
 	// Call the Rust function to get the next batch
 	rowCount := C.csv_crawler_next_batch(h.ptr, schemaPtr, arrayPtr, &cErrMsg)
 
 	if cErrMsg != nil {
 		msg := C.GoString(cErrMsg)
-		C.free(unsafe.Pointer(cErrMsg))
 		return nil, fmt.Errorf("rust: %s", msg)
 	}
-	if rowCount < 0 {
-		return nil, fmt.Errorf("csv_crawler_next_batch failed with no error message")
+
+	// If rowCount is 0, we are at the end of the data
+	if rowCount == 0 {
+		return nil, io.EOF
 	}
 
 	rec, err := cdata.ImportCRecordBatch(&rawArray, &rawSchema)
