@@ -4,6 +4,9 @@
 
 ---
 
+## Examples
+![GliderCSV in Action](assets/demo1.png)
+
 ## 🏗 Architecture
 
 GliderCSV is built on three pillars of modern systems engineering:
@@ -17,6 +20,7 @@ GliderCSV is built on three pillars of modern systems engineering:
 * **Zero-Copy FFI:** Data flows from Rust to Go via memory pointers, not JSON or Protobuf.
 * **SQL-Powered Pushdown:** Filter and select rows at the source using standard SQL (e.g., `SELECT name, latency FROM data WHERE status = 'ERROR' AND latency > 500`). Powered by Apache DataFusion.
 * **Memory Efficient:** Streams data in configurable batches; discard non-matching rows during the raw byte-parsing phase. Process a 100GB file using only a few megabytes of RAM.
+* **Virtual Scrolling:** The TUI renders only the visible viewport slice of loaded rows. New batches are fetched lazily in the background as the cursor approaches the end of buffered data, keeping memory footprint constant regardless of file size.
 * **Interactive TUI:** Real-time filtering, sorting, and progress tracking powered by Bubble Tea.
 
 ## 🚀 Getting Started
@@ -65,17 +69,18 @@ GliderCSV/
 
 ## 🗺 Roadmap
 
-### Phase 1: Foundations (Current)
+### Phase 1: Foundations ✅
 
 * [x] Basic Rust-to-Go FFI scaffold via `cgo`.
 * [x] Automated header generation with `cbindgen`.
-* [ ] Initial Bubble Tea TUI viewport setup.
+* [x] Initial Bubble Tea TUI viewport setup.
 
-### Phase 2: The Data Plane
+### Phase 2: The Data Plane ✅
 
 * [x] Implement **Apache Arrow C Data Interface** for zero-copy memory transfers.
 * [x] Establish strict memory lifecycles (Rust allocates, Go reads & triggers release callbacks).
-* [ ] Integrate a background worker in Go (`tea.Cmd`) to keep the TUI responsive during FFI batch fetching.
+* [x] Integrate a background worker in Go (`tea.Cmd`) to keep the TUI responsive during FFI batch fetching.
+* [x] **Lazy-load record batches for virtual scrolling:** demand-driven `NextBatch` calls triggered when the cursor approaches within 150 rows of the buffered boundary; only the visible viewport slice is passed to the table renderer.
 
 ### Phase 3: The Intelligence Layer (Powered by DataFusion)
 

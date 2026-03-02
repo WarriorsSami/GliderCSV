@@ -1,4 +1,4 @@
 **/target
 **/*.h
 **/syscrawler.test
-**/cli
+**/testdata/huge_samples
